@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 // --- TYPE DEFINITIONS ---
 type ResultCard = {
@@ -29,7 +30,9 @@ const ResultCardDisplay = ({ title, content }: ResultCard) => {
           {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
-      <div className="prose prose-sm max-w-none text-gray-600 whitespace-pre-wrap">{content}</div>
+      <div className="prose prose-sm max-w-none text-gray-600">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
     </div>
   );
 };
@@ -80,8 +83,8 @@ export default function HomePage() {
     <div className="bg-gray-50 min-h-screen font-sans">
       <main className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800">AI Transcript Enhancer</h1>
-          <p className="mt-4 text-lg text-gray-500">Paste a transcript and get AI-powered enhancements based on a local template library.</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800">AI Producer</h1>
+          <p className="mt-4 text-lg text-gray-500">Paste a transcript and get Gemini's suggestions for titles/clips/etc</p>
         </div>
 
         <div className="max-w-2xl mx-auto">
@@ -93,7 +96,7 @@ export default function HomePage() {
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
                 placeholder="Paste your full transcript text here..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                 rows={12}
                 required
               />

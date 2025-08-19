@@ -221,7 +221,7 @@ out tomorrow.
 
 (01:18:51) - De-extinction of lost species
 
-# How to find preview clips
+# Preview Clips
 
 ## Still todo
 
