@@ -21,7 +21,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
  * @param content The raw text content of the template document.
  * @returns An array of template objects with titles and prompts.
  */
-function parseTemplates(content: string): { title: string; prompt: string } {
+function parseTemplates(content: string): { title: string; prompt: string }[] {
   const templates: { title: string; prompt: string }[] = [];
   const lines = content.split('\n');
   let currentPrompt = '';
