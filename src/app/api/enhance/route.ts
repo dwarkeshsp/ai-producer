@@ -95,8 +95,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ results });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in /api/enhance:", error);
-    return NextResponse.json({ error: error.message || 'An unexpected error occurred.' }, { status: 500 });
+    if (error instanceof Error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
   }
 }

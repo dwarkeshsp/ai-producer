@@ -72,8 +72,12 @@ export default function HomePage() {
       }
 
       setResults(data.results);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +88,7 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800">AI Producer</h1>
-          <p className="mt-4 text-lg text-gray-500">Paste a transcript and get Gemini's suggestions for titles/clips/etc</p>
+          <p className="mt-4 text-lg text-gray-500">Paste a transcript and get Gemini&apos;s suggestions for titles/clips/etc</p>
         </div>
 
         <div className="max-w-2xl mx-auto">
