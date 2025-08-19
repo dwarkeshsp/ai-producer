@@ -45,7 +45,6 @@ const Loader = () => (
 
 export default function HomePage() {
   const [transcript, setTranscript] = useState('');
-  const [templateDocUrl, setTemplateDocUrl] = useState('https://docs.google.com/document/d/1sHSlUdy2ccznVqw2z0fUNwULoJCIzckBWmSPJ5z29iw/edit');
   const [results, setResults] = useState<ResultCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +59,7 @@ export default function HomePage() {
       const response = await fetch('/api/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, templateDocUrl }),
+        body: JSON.stringify({ transcript }),
       });
 
       const data = await response.json();
@@ -82,31 +81,20 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800">AI Transcript Enhancer</h1>
-          <p className="mt-4 text-lg text-gray-500">Paste a transcript or link to a Google Doc, provide a template library, and let AI do the rest.</p>
+          <p className="mt-4 text-lg text-gray-500">Paste a transcript and get AI-powered enhancements based on a local template library.</p>
         </div>
 
         <div className="max-w-2xl mx-auto">
           <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-lg border border-gray-200 space-y-6">
             <div>
-              <label htmlFor="templateDocUrl" className="block text-sm font-medium text-gray-700 mb-2">Template Library Google Doc URL</label>
-              <input
-                id="templateDocUrl"
-                type="url"
-                value={templateDocUrl}
-                onChange={(e) => setTemplateDocUrl(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="transcript" className="block text-sm font-medium text-gray-700 mb-2">Transcript (Paste text or provide Google Doc URL)</label>
+              <label htmlFor="transcript" className="block text-sm font-medium text-gray-700 mb-2">Transcript</label>
               <textarea
                 id="transcript"
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
-                placeholder="Paste your full transcript text or a public Google Doc link here..."
+                placeholder="Paste your full transcript text here..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                rows={10}
+                rows={12}
                 required
               />
             </div>

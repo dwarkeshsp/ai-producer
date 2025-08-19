@@ -1,63 +1,19 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { google } from 'googleapis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import fs from 'fs';
+import path from 'path';
 
 // --- CONFIGURATION ---
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-if (!GOOGLE_API_KEY || !GEMINI_API_KEY) {
-  throw new Error("Missing API keys. Please set GOOGLE_API_KEY and GEMINI_API_KEY in your .env.local file");
+if (!GEMINI_API_KEY) {
+  throw new Error("Missing API keys. Please set GEMINI_API_KEY in your .env.local file");
 }
-
-const docs = google.docs({
-  version: 'v1',
-  auth: GOOGLE_API_KEY,
-});
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 
 // --- HELPER FUNCTIONS ---
-
-/**
- * Extracts the Google Doc ID from a URL.
- * @param url The Google Doc URL.
- * @returns The document ID or null if not found.
- */
-function extractGoogleDocId(url: string): string | null {
-  const match = /\/document\/d\/([a-zA-Z0-9-_]+)/.exec(url);
-  return match ? match[1] : null;
-}
-
-/**
- * Fetches the content of a public Google Doc.
- * @param docId The ID of the Google Doc.
- * @returns The text content of the document.
- */
-async function getGoogleDocContent(docId: string): Promise<string> {
-  try {
-    const response = await docs.documents.get({
-      documentId: docId,
-    });
-    const content = response.data.body?.content;
-    if (!content) {
-      return "";
-    }
-    return content
-      .map((element) => {
-        if (element.paragraph) {
-          return element.paragraph.elements?.map((el) => el.textRun?.content || '').join('');
-        }
-        return '';
-      })
-      .join('');
-  } catch (error) {
-    console.error(`Error fetching Google Doc (ID: ${docId}):`, error);
-    throw new Error(`Failed to fetch content from Google Doc. Please ensure it's public and the URL is correct.`);
-  }
-}
 
 /**
  * Parses the template library content into individual prompts.
@@ -65,7 +21,7 @@ async function getGoogleDocContent(docId: string): Promise<string> {
  * @param content The raw text content of the template document.
  * @returns An array of template objects with titles and prompts.
  */
-function parseTemplates(content: string): { title: string; prompt: string }[] {
+function parseTemplates(content: string): { title: string; prompt: string } {
   const templates: { title: string; prompt: string }[] = [];
   const lines = content.split('\n');
   let currentPrompt = '';
@@ -95,33 +51,23 @@ function parseTemplates(content: string): { title: string; prompt: string }[] {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { transcript, templateDocUrl } = await req.json();
+    const { transcript } = await req.json();
 
-    if (!transcript || !templateDocUrl) {
-      return NextResponse.json({ error: 'Missing transcript or templateDocUrl' }, { status: 400 });
+    if (!transcript) {
+      return NextResponse.json({ error: 'Missing transcript' }, { status: 400 });
     }
 
-    const templateDocId = extractGoogleDocId(templateDocUrl);
-    if (!templateDocId) {
-      return NextResponse.json({ error: 'Invalid template Google Doc URL' }, { status: 400 });
-    }
-
-    // --- Fetch and Parse Templates ---
-    const templateDocContent = await getGoogleDocContent(templateDocId);
-    const templates = parseTemplates(templateDocContent);
+    // --- Fetch and Parse Templates from local file ---
+    const templatesFilePath = path.join(process.cwd(), 'prompt-templates.md');
+    const templateFileContent = fs.readFileSync(templatesFilePath, 'utf8');
+    const templates = parseTemplates(templateFileContent);
 
     if (templates.length === 0) {
-        return NextResponse.json({ error: 'No templates found in the document. Ensure they are separated by H1 headers (e.g., "# My Template").' }, { status: 400 });
+        return NextResponse.json({ error: 'No templates found in prompt-templates.md. Ensure they are separated by H1 headers (e.g., "# My Template").' }, { status: 400 });
     }
 
     // --- Get Transcript Content ---
-    let transcriptContent = '';
-    const transcriptDocId = extractGoogleDocId(transcript);
-    if (transcriptDocId) {
-      transcriptContent = await getGoogleDocContent(transcriptDocId);
-    } else {
-      transcriptContent = transcript; // Assume it's raw text
-    }
+    const transcriptContent = transcript; // Transcript is now always raw text
 
     // --- Run AI Processing in Parallel ---
     const enhancementPromises = templates.map(async (template) => {
